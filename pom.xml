@@ -28,6 +28,7 @@
         <module>JettraRest</module>
         <module>JettraRules</module>
         <module>JettraTest</module>
+        <module>JettraCollections</module>
     </modules>
     <dependencies>
     
