@@ -62,6 +62,18 @@ public class JettraTestRunner {
             URLClassLoader classLoader = URLClassLoader.newInstance(urls.toArray(new URL[0]), JettraTestRunner.class.getClassLoader());
             List<Class<?>> classes = findClasses(new File(testClassesDir), testClassesDir, classLoader);
 
+            String testFilter = System.getProperty("test");
+            if (testFilter == null || testFilter.isBlank()) {
+                testFilter = System.getProperty("jettra.test");
+            }
+            if (testFilter != null && !testFilter.isBlank()) {
+                final String filter = testFilter.trim();
+                classes = classes.stream()
+                        .filter(c -> c.getSimpleName().equals(filter) || c.getSimpleName().equalsIgnoreCase(filter)
+                                || c.getName().contains(filter) || c.getSimpleName().startsWith(filter))
+                        .toList();
+            }
+
             // Phase 1: Determine Server Requirements and Launcher
             boolean requiresServer = false;
             Class<?> launcherClass = null;

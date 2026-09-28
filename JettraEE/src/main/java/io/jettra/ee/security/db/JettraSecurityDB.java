@@ -3,8 +3,10 @@ package io.jettra.ee.security.db;
 import java.io.*;
 import java.nio.file.*;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Predicate;
@@ -102,8 +104,8 @@ public class JettraSecurityDB {
             fileLock = channel.lock(0L, Long.MAX_VALUE, true);
 
             ObjectInputStream ois = new ObjectInputStream(fis);
-            CompactHeader header = (CompactHeader) ois.readObject();
-            T entity = (T) ois.readObject();
+            ois.readObject();
+            T entity = readEntity(ois, clazz);
             return Optional.of(entity);
         } catch (IOException | ClassNotFoundException e) {
             throw new RuntimeException("Error reading object from JettraSecurityDB", e);
@@ -141,8 +143,8 @@ public class JettraSecurityDB {
                         fileLock = channel.lock(0L, Long.MAX_VALUE, true);
 
                         ObjectInputStream ois = new ObjectInputStream(fis);
-                        CompactHeader header = (CompactHeader) ois.readObject();
-                        T entity = (T) ois.readObject();
+                        ois.readObject();
+                        T entity = readEntity(ois, clazz);
                         results.add(entity);
                     } catch (FileNotFoundException ignored) {
                     } catch (IOException | ClassNotFoundException e) {
@@ -187,5 +189,51 @@ public class JettraSecurityDB {
 
     public <T extends Serializable> List<T> search(Class<T> clazz, String query) {
         return search(clazz, JettraQueryParser.parse(query, clazz));
+    }
+
+    private <T extends Serializable> T readEntity(ObjectInputStream input, Class<T> clazz)
+            throws IOException, ClassNotFoundException {
+        Object entity = input.readObject();
+        if (clazz.isInstance(entity)) {
+            return clazz.cast(entity);
+        }
+
+        Object migrated = migrateLegacyEntity(entity);
+        if (clazz.isInstance(migrated)) {
+            return clazz.cast(migrated);
+        }
+
+        throw new InvalidObjectException("Unexpected entity type " + entity.getClass().getName()
+                + "; expected " + clazz.getName());
+    }
+
+    private Object migrateLegacyEntity(Object entity) throws InvalidObjectException {
+        if (entity instanceof io.jettra.server.autentification.entity.JRole role) {
+            return new io.jettra.ee.security.entity.JRole(role.id(), role.name(), role.active());
+        }
+        if (entity instanceof io.jettra.server.autentification.entity.JUser user) {
+            Set<io.jettra.ee.security.entity.JRole> roles = new HashSet<>();
+            if (user.jRoles() != null) {
+                for (io.jettra.server.autentification.entity.JRole role : user.jRoles()) {
+                    roles.add((io.jettra.ee.security.entity.JRole) migrateLegacyEntity(role));
+                }
+            }
+            return new io.jettra.ee.security.entity.JUser(
+                    user.id(), user.firstName(), user.lastName(), user.email(), user.phone(),
+                    user.active(), roles, user.assignedDatabases());
+        }
+        if (entity instanceof io.jettra.server.autentification.entity.JCredential credential) {
+            return new io.jettra.ee.security.entity.JCredential(
+                    credential.id(),
+                    (io.jettra.ee.security.entity.JUser) migrateLegacyEntity(credential.jUser()),
+                    credential.username(), credential.passwordHash(), credential.active(), credential.lastLogin());
+        }
+        if (entity instanceof io.jettra.server.autentification.entity.JAccreditation accreditation) {
+            return new io.jettra.ee.security.entity.JAccreditation(
+                    accreditation.id(),
+                    (io.jettra.ee.security.entity.JRole) migrateLegacyEntity(accreditation.jRole()),
+                    accreditation.feature(), accreditation.active());
+        }
+        throw new InvalidObjectException("Unsupported legacy entity type " + entity.getClass().getName());
     }
 }

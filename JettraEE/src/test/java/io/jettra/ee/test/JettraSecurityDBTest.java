@@ -1,5 +1,6 @@
 package io.jettra.ee.test;
 
+import io.jettra.ee.security.db.JettraSecurityDB;
 import io.jettra.ee.security.entity.JCredential;
 import io.jettra.ee.security.entity.JUser;
 import io.jettra.ee.security.repository.JCredentialRepository;
@@ -14,8 +15,14 @@ import io.jettra.test.annotation.BeforeAll;
 import io.jettra.test.annotation.DisplayName;
 import io.jettra.test.annotation.Test;
 
+import java.io.ObjectOutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 
 import static io.jettra.test.core.JettraAssert.*;
 
@@ -78,6 +85,45 @@ public class JettraSecurityDBTest {
 
         Optional<String> nonExistent = securityService.authenticate("usuario_inexistente", "123");
         assertTrue(nonExistent.isEmpty(), "La autenticación debe fallar ante usuario inexistente");
+    }
+
+    @Test
+    @DisplayName("Lectura compatible de archivos de seguridad del paquete server")
+    public void testLegacyServerHeaderCompatibility() throws Exception {
+        Path baseDir = Files.createTempDirectory("jettra-security-db-legacy");
+        Path collectionDir = Files.createDirectories(baseDir.resolve("jcredential"));
+        Path dataFile = collectionDir.resolve("legacy.jdb");
+        UUID roleId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
+        UUID credentialId = UUID.randomUUID();
+        io.jettra.server.autentification.entity.JRole legacyRole =
+                new io.jettra.server.autentification.entity.JRole(roleId, "ADMIN", true);
+        io.jettra.server.autentification.entity.JUser legacyUser =
+                new io.jettra.server.autentification.entity.JUser(
+                        userId, "legacy", "*", "legacy@jettra.io", "", true,
+                        Set.of(legacyRole), Set.of("*"));
+        io.jettra.server.autentification.entity.JCredential legacyCredential =
+                new io.jettra.server.autentification.entity.JCredential(
+                        credentialId, legacyUser, "legacy", "legacy-password-hash", true, Instant.EPOCH);
+
+        try {
+            try (ObjectOutputStream output = new ObjectOutputStream(Files.newOutputStream(dataFile))) {
+                output.writeObject(new io.jettra.server.db.security.CompactHeader());
+                output.writeObject(legacyCredential);
+            }
+
+            JettraSecurityDB database = new JettraSecurityDB(baseDir.toString());
+            List<JCredential> credentials = database.findAll(JCredential.class);
+            assertEquals(1, credentials.size());
+            assertEquals(credentialId, credentials.getFirst().id());
+            assertEquals("legacy", credentials.getFirst().jUser().username());
+            assertEquals("ADMIN", credentials.getFirst().jUser().jRoles().iterator().next().name());
+            assertEquals(Optional.of(credentials.getFirst()), database.findById(JCredential.class, "legacy"));
+        } finally {
+            Files.deleteIfExists(dataFile);
+            Files.deleteIfExists(collectionDir);
+            Files.deleteIfExists(baseDir);
+        }
     }
 
     @Test
