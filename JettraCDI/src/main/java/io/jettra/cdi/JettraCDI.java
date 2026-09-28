@@ -1,4 +1,4 @@
-package io.jettra.cdi;
+    package io.jettra.cdi;
 
 import io.jettra.cdi.config.ConfigInjector;
 import io.jettra.cdi.config.JettraConfig;
