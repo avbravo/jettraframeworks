@@ -251,6 +251,94 @@ public class UnifiedMap<K, V> extends AbstractMap<K, V> implements Map<K, V> {
             }
         };
     }
+    @Override
+    public Collection<V> values() {
+        return new AbstractCollection<>() {
+            @Override
+            public Iterator<V> iterator() {
+                return new Iterator<>() {
+                    private int visited = 0;
+                    private int slot = 0;
+
+                    @Override
+                    public boolean hasNext() {
+                        return visited < size;
+                    }
+
+                    @Override
+                    @SuppressWarnings("unchecked")
+                    public V next() {
+                        if (!hasNext()) throw new NoSuchElementException();
+                        while (slot <= mask) {
+                            int idx = slot << 1;
+                            slot++;
+                            if (table[idx] != null) {
+                                visited++;
+                                return (V) table[idx + 1];
+                            }
+                        }
+                        throw new NoSuchElementException();
+                    }
+                };
+            }
+
+            @Override
+            public int size() {
+                return size;
+            }
+        };
+    }
+
+    @Override
+    public Set<K> keySet() {
+        return new AbstractSet<>() {
+            @Override
+            public Iterator<K> iterator() {
+                return new Iterator<>() {
+                    private int visited = 0;
+                    private int slot = 0;
+
+                    @Override
+                    public boolean hasNext() {
+                        return visited < size;
+                    }
+
+                    @Override
+                    @SuppressWarnings("unchecked")
+                    public K next() {
+                        if (!hasNext()) throw new NoSuchElementException();
+                        while (slot <= mask) {
+                            int idx = slot << 1;
+                            slot++;
+                            if (table[idx] != null) {
+                                visited++;
+                                return (K) unmaskNull(table[idx]);
+                            }
+                        }
+                        throw new NoSuchElementException();
+                    }
+                };
+            }
+
+            @Override
+            public int size() {
+                return size;
+            }
+        };
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public void forEach(java.util.function.BiConsumer<? super K, ? super V> action) {
+        Objects.requireNonNull(action);
+        int visited = 0;
+        for (int i = 0; i < table.length && visited < size; i += 2) {
+            if (table[i] != null) {
+                visited++;
+                action.accept((K) unmaskNull(table[i]), (V) table[i + 1]);
+            }
+        }
+    }
 
     private static Object maskNull(Object o) {
         return o == null ? NULL_KEY : o;
