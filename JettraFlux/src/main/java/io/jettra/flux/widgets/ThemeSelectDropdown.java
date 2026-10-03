@@ -36,6 +36,7 @@ public class ThemeSelectDropdown extends Widget {
         THEME_ICONS.put("heroes", "⚡");
         THEME_ICONS.put("sl", "🌐");
         THEME_ICONS.put("core", "⚛️");
+        THEME_ICONS.put("police", "🚔");
     }
 
     public ThemeSelectDropdown() {

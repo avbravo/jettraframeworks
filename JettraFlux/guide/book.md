@@ -72,6 +72,16 @@ FluxUI supports advanced theming out of the box:
    `Themes.SLTheme()` or `Themes.SL()`
 11. **CoreTheme (Core):** Authentic sci-fi HUD and 3D simulation aesthetic modeled after Jettra 3D Core with Amber Gold (#f59e0b), Java 25 Sky Blue (#38bdf8), 3D grid space canvas (#0b0e14), translucent dark HUD panels, and command action buttons.
    `Themes.CoreTheme()` or `Themes.Core()`
+12. **RetroTheme (Retro):** 8-bit retro arcade aesthetic with vibrant neon highlights.
+   `Themes.RetroTheme()` or `Themes.Retro()`
+13. **PoliceTheme (Police):** Authentic tactical cyber-surveillance command aesthetic modeled directly after the interface and components of JettraStorePolice3D:
+   - Deep midnight navy command canvas (`#090d16` / `#0f1526`) with cyber grid lines.
+   - Police Gold (`#ffd700`) primary actions, cluster monitor headers, and telemetry badges.
+   - Cyber Sky Blue (`#00d4ff`) secondary accents, node titles, and data streams.
+   - Neon Tactical Lime (`#22c55e`) online running indicators and Alert Red (`#ef4444`) offline status.
+   - High-legibility monospace metrics and typography (`'JetBrains Mono'`, `'Segoe UI'`).
+   - Pure HTML, CSS, JavaScript (zero JavaFX or external UI dependencies) with real-time surveillance radar canvas animation.
+   `Themes.PoliceTheme()` or `Themes.Police()`
 
 You can also create your own theme by instantiating `ThemeData` directly.
 

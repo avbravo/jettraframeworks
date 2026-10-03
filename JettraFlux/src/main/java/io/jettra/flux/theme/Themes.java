@@ -20,6 +20,7 @@ public class Themes {
         ThemeRegistry.registerTheme("Heroes", Heroes());
         ThemeRegistry.registerTheme("SL", SL());
         ThemeRegistry.registerTheme("Core", Core());
+        ThemeRegistry.registerTheme("Police", Police());
 
         // Backward compatibility aliases (not shown in selection menus)
         ThemeRegistry.registerAlias("SLTheme", SLTheme());
@@ -34,6 +35,7 @@ public class Themes {
         ThemeRegistry.registerAlias("Futuristic", FuturisticTheme());
         ThemeRegistry.registerAlias("Ast", AstTheme());
         ThemeRegistry.registerAlias("Atlantis", AtlantisTheme());
+        ThemeRegistry.registerAlias("PoliceTheme", PoliceTheme());
     }
 
     // --- SL ---
@@ -230,5 +232,22 @@ public class Themes {
 
     public static ThemeData Dark(ColorMode mode) {
         return DarkTheme(mode);
+    }
+
+    // --- Police ---
+    public static ThemeData Police() {
+        return Police.create();
+    }
+
+    public static ThemeData Police(ColorMode mode) {
+        return Police.create(mode);
+    }
+
+    public static ThemeData PoliceTheme() {
+        return Police();
+    }
+
+    public static ThemeData PoliceTheme(ColorMode mode) {
+        return Police(mode);
     }
 }

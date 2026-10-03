@@ -205,6 +205,7 @@ public class ThemeTokensAndToggleTest {
         assertTrue(html.contains("Heroes"), "Must contain Heroes");
         assertTrue(html.contains("SL"), "Must contain SL");
         assertTrue(html.contains("Core"), "Must contain Core");
+        assertTrue(html.contains("Police"), "Must contain Police");
 
         // Obsolete identifiers must NOT be present as selectable items
         assertFalse(html.contains("CoreTheme"), "Must NOT contain CoreTheme");
@@ -213,9 +214,9 @@ public class ThemeTokensAndToggleTest {
     }
 
     @Test
-    @DisplayName("JettraTheme enum contains exact 12 themes with getDisplayName()")
+    @DisplayName("JettraTheme enum contains canonical themes with getDisplayName()")
     public void testJettraThemeDisplayNames() {
-        assertEquals(12, JettraTheme.values().length);
+        assertEquals(13, JettraTheme.values().length);
         assertEquals("FlatTheme", JettraTheme.FLAT_THEME.getDisplayName());
         assertEquals("Theme3D", JettraTheme.THEME_3D.getDisplayName());
         assertEquals("FuturisticTheme", JettraTheme.FUTURISTIC_THEME.getDisplayName());
@@ -228,6 +229,7 @@ public class ThemeTokensAndToggleTest {
         assertEquals("Heroes", JettraTheme.HEROES.getDisplayName());
         assertEquals("SL", JettraTheme.SL.getDisplayName());
         assertEquals("Core", JettraTheme.CORE.getDisplayName());
+        assertEquals("Police", JettraTheme.POLICE.getDisplayName());
     }
 
     @Test
@@ -242,10 +244,10 @@ public class ThemeTokensAndToggleTest {
     }
 
     @Test
-    @DisplayName("ThemeRegistry.getAvailableThemeNames returns exactly the 12 canonical themes")
+    @DisplayName("ThemeRegistry.getAvailableThemeNames returns canonical themes")
     public void testAvailableThemeNamesExcludesObsolete() {
         String[] names = ThemeRegistry.getAvailableThemeNames();
-        assertEquals(12, names.length, "Available theme names must contain exactly 12 canonical themes");
+        assertEquals(13, names.length, "Available theme names must contain canonical themes");
         java.util.List<String> list = java.util.Arrays.asList(names);
         assertTrue(list.contains("FlatTheme"));
         assertTrue(list.contains("Theme3D"));
@@ -259,6 +261,7 @@ public class ThemeTokensAndToggleTest {
         assertTrue(list.contains("Heroes"));
         assertTrue(list.contains("SL"));
         assertTrue(list.contains("Core"));
+        assertTrue(list.contains("Police"));
 
         assertFalse(list.contains("CoreTheme"));
         assertFalse(list.contains("SLTheme"));
@@ -277,6 +280,7 @@ public class ThemeTokensAndToggleTest {
         assertTrue(html.contains("Heroes"));
         assertTrue(html.contains("Theme3D"));
         assertTrue(html.contains("FlatTheme"));
+        assertTrue(html.contains("Police"));
         assertFalse(html.contains("CoreTheme"));
         assertFalse(html.contains("SLTheme"));
         assertFalse(html.contains("HeroesTheme"));
@@ -288,6 +292,7 @@ public class ThemeTokensAndToggleTest {
         assertTrue(nativeHtml.contains("<option value=\"Core\">"));
         assertTrue(nativeHtml.contains("<option value=\"SL\">"));
         assertTrue(nativeHtml.contains("<option value=\"Heroes\">"));
+        assertTrue(nativeHtml.contains("<option value=\"Police\">"));
         assertFalse(nativeHtml.contains("<option value=\"CoreTheme\">"));
     }
 

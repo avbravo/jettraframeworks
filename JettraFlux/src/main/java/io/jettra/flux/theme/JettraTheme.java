@@ -18,7 +18,8 @@ public enum JettraTheme implements ThemeProvider {
     DARK_THEME("DarkTheme"),
     HEROES("Heroes"),
     SL("SL"),
-    CORE("Core");
+    CORE("Core"),
+    POLICE("Police");
 
     private final String displayName;
 
@@ -46,7 +47,7 @@ public enum JettraTheme implements ThemeProvider {
     public ColorMode getDefaultColorMode() {
         return switch (this) {
             case FLAT_THEME, THEME_3D, ATLANTIS_THEME -> ColorMode.WHITE;
-            case SL, CORE, HEROES, FUTURISTIC_THEME, AST_THEME, OCEAN_THEME, MATRIX, RETRO, DARK_THEME -> ColorMode.DARK;
+            case SL, CORE, HEROES, FUTURISTIC_THEME, AST_THEME, OCEAN_THEME, MATRIX, RETRO, DARK_THEME, POLICE -> ColorMode.DARK;
         };
     }
 
@@ -58,6 +59,7 @@ public enum JettraTheme implements ThemeProvider {
             case CORE -> io.jettra.flux.theme.Core.getTokens(mode);
             case HEROES -> io.jettra.flux.theme.Heroes.getTokens(mode);
             case MATRIX -> io.jettra.flux.theme.MatrixTheme.getTokens(mode);
+            case POLICE -> io.jettra.flux.theme.Police.getTokens(mode);
             case DARK_THEME -> io.jettra.flux.theme.DarkTheme.getTokens(mode);
             case RETRO -> io.jettra.flux.theme.RetroTheme.getTokens(mode);
             case OCEAN_THEME -> io.jettra.flux.theme.OceanTheme.getTokens(mode);
@@ -81,6 +83,7 @@ public enum JettraTheme implements ThemeProvider {
             case CORE -> io.jettra.flux.theme.Core.create(mode);
             case HEROES -> io.jettra.flux.theme.Heroes.create(mode);
             case MATRIX -> io.jettra.flux.theme.MatrixTheme.create(mode);
+            case POLICE -> io.jettra.flux.theme.Police.create(mode);
             case DARK_THEME -> io.jettra.flux.theme.DarkTheme.create(mode);
             case RETRO -> io.jettra.flux.theme.RetroTheme.create(mode);
             case OCEAN_THEME -> io.jettra.flux.theme.OceanTheme.create(mode);
@@ -122,6 +125,7 @@ public enum JettraTheme implements ThemeProvider {
             case "matrix", "matrixtheme" -> MATRIX;
             case "retro", "retrotheme" -> RETRO;
             case "dark", "darktheme" -> DARK_THEME;
+            case "police", "policetheme" -> POLICE;
             default -> MATRIX;
         };
     }
