@@ -23,6 +23,12 @@ public class JettraConfig {
     }
 
     public static String getProperty(String key) {
+        if (key == null) return null;
+        String sys = System.getProperty(key);
+        if (sys != null && !sys.isBlank()) return sys;
+        String envKey = key.replace(".", "_").replace("-", "_").toUpperCase();
+        String env = System.getenv(envKey);
+        if (env != null && !env.isBlank()) return env;
         return properties.getProperty(key);
     }
 

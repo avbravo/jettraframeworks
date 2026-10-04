@@ -179,9 +179,9 @@ public abstract class FluxBaseHandler implements HttpHandler {
                           "<meta charset=\"UTF-8\">\n" +
                           "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n" +
                           "<title>" + getTitle() + "</title>\n" +
-                          "<link rel=\"stylesheet\" href=\"/static/font-awesome/css/all.min.css\">\n" +
-                          "<link rel=\"stylesheet\" href=\"/static/bootstrap-icons/font/bootstrap-icons.css\">\n" +
-                          "<link rel=\"stylesheet\" href=\"/static/material-icons/material-symbols.css\">\n" +
+                          "<link rel=\"stylesheet\" href=\"" + FluxConfig.resolvePath("/static/font-awesome/css/all.min.css") + "\">\n" +
+                          "<link rel=\"stylesheet\" href=\"" + FluxConfig.resolvePath("/static/bootstrap-icons/font/bootstrap-icons.css") + "\">\n" +
+                          "<link rel=\"stylesheet\" href=\"" + FluxConfig.resolvePath("/static/material-icons/material-symbols.css") + "\">\n" +
                           theme.generateGlobalCss() + "\n" +
                           io.jettra.flux.theme.ThemeContext.getInstance().generateClientScript() + "\n" +
                           syncJs.toString() + "\n" +
@@ -269,9 +269,9 @@ public abstract class FluxBaseHandler implements HttpHandler {
         String html = "<!DOCTYPE html>\n<html lang=\"en\" data-color-mode=\"" + colorMode.name().toLowerCase() + "\">\n<head>\n"
                 + "<meta charset=\"UTF-8\">\n"
                 + "<title>Acceso Denegado - " + statusCode + "</title>\n"
-                + "<link rel=\"stylesheet\" href=\"/static/font-awesome/css/all.min.css\">\n"
-                + "<link rel=\"stylesheet\" href=\"/static/bootstrap-icons/font/bootstrap-icons.css\">\n"
-                + "<link rel=\"stylesheet\" href=\"/static/material-icons/material-symbols.css\">\n"
+                + "<link rel=\"stylesheet\" href=\"" + FluxConfig.resolvePath("/static/font-awesome/css/all.min.css") + "\">\n"
+                + "<link rel=\"stylesheet\" href=\"" + FluxConfig.resolvePath("/static/bootstrap-icons/font/bootstrap-icons.css") + "\">\n"
+                + "<link rel=\"stylesheet\" href=\"" + FluxConfig.resolvePath("/static/material-icons/material-symbols.css") + "\">\n"
                 + theme.generateGlobalCss() + "\n"
                 + "</head>\n<body style=\"margin:0; padding:0; box-sizing: border-box;\">\n"
                 + errorWidget.render(theme) + "\n"

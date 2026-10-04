@@ -27,6 +27,9 @@ public final class FluxConfig {
         if (!path.startsWith("/")) {
             path = "/" + path;
         }
+        if (path.equals(contextPath) || path.startsWith(contextPath + "/")) {
+            return path;
+        }
         return contextPath + path;
     }
 }

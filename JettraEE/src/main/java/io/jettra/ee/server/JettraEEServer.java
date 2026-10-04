@@ -71,7 +71,7 @@ public class JettraEEServer {
     public void addHandler(String path, HttpHandler handler) {
         customHandlers.put(path, handler);
         if (httpServer != null) {
-            registerEndpoint(path, handler);
+            registerEndpoint(path, FluxIntegration.wrapFluxHandler(handler));
         }
     }
 
@@ -126,7 +126,7 @@ public class JettraEEServer {
                 if (p.equals(rootPath)) {
                     continue; // Se integrará en el despachador unificado de raíz
                 }
-                registerEndpoint(entry.getKey(), entry.getValue());
+                registerEndpoint(entry.getKey(), FluxIntegration.wrapFluxHandler(entry.getValue()));
             }
 
             // 4. Recursos Estáticos (/static)
@@ -138,8 +138,8 @@ public class JettraEEServer {
 
             // 6. Despachador Jakarta REST, Faces y Recursos Web unificado
             final HttpHandler fluxRoot = rootFluxHandler;
-            final HttpHandler customRoot = customHandlers.get("/");
-            registerEndpoint(rootPath, wrapMetrics(exchange -> {
+            final HttpHandler customRoot = customHandlers.containsKey("/") ? FluxIntegration.wrapFluxHandler(customHandlers.get("/")) : (fluxRoot != null ? fluxRoot : null);
+            registerEndpoint("/", wrapMetrics(exchange -> {
                 String fullPath = exchange.getRequestURI().getPath();
                 String p = fullPath;
                 if (!contextPath.equals("/") && p.startsWith(contextPath)) {
@@ -250,6 +250,12 @@ public class JettraEEServer {
                 httpServer.removeContext(trimmed);
             } catch (IllegalArgumentException ignored) {}
             httpServer.createContext(trimmed, wrapMetrics(handler));
+        } else if (!resolved.endsWith("/")) {
+            String withSlash = resolved + "/";
+            try {
+                httpServer.removeContext(withSlash);
+            } catch (IllegalArgumentException ignored) {}
+            httpServer.createContext(withSlash, wrapMetrics(handler));
         }
     }
 
@@ -259,6 +265,17 @@ public class JettraEEServer {
             metricsHandler.trackRequestStart();
             try {
                 handler.handle(exchange);
+            } catch (Throwable t) {
+                IO.error("Error al procesar petición en: " + exchange.getRequestURI(), t);
+                try {
+                    String err = "{\"status\":500,\"error\":\"Internal Server Error\",\"message\":\"" + (t.getMessage() != null ? t.getMessage().replace('"', '\'') : "Error interno") + "\"}";
+                    byte[] bytes = err.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+                    exchange.getResponseHeaders().set("Content-Type", "application/json; charset=UTF-8");
+                    exchange.sendResponseHeaders(500, bytes.length);
+                    try (OutputStream os = exchange.getResponseBody()) {
+                        os.write(bytes);
+                    }
+                } catch (Exception ignored) {}
             } finally {
                 metricsHandler.trackRequestEnd();
             }
@@ -364,6 +381,9 @@ public class JettraEEServer {
             return path.startsWith("/") ? path : "/" + path;
         }
         if (!path.startsWith("/")) path = "/" + path;
+        if (path.equals(contextPath) || path.startsWith(contextPath + "/")) {
+            return path;
+        }
         return contextPath + path;
     }
 }

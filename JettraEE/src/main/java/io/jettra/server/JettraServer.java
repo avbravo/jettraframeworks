@@ -20,9 +20,20 @@ public class JettraServer {
     private final Map<String, HttpHandler> handlerRegistry = new ConcurrentHashMap<>();
 
     public JettraServer() {
+        String p = io.jettra.server.config.JettraConfig.getProperty("server.port");
+        if (p != null && !p.isBlank()) {
+            try {
+                this.customPort = Integer.parseInt(p.trim());
+            } catch (Exception ignored) {}
+        }
+        String cp = io.jettra.server.config.JettraConfig.getProperty("server.contextpath");
+        if (cp != null && !cp.isBlank()) {
+            setContextPath(cp.trim());
+        }
     }
 
     public JettraServer(int port) {
+        this();
         this.customPort = port;
     }
 
@@ -73,7 +84,38 @@ public class JettraServer {
         System.out.println("[JettraServer] Scripts generated.");
     }
 
+    public void loadDiscoveredPages() {
+        try {
+            ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+            if (classLoader == null) classLoader = JettraServer.class.getClassLoader();
+            java.util.Enumeration<java.net.URL> resources = classLoader.getResources("META-INF/jettra/page.classes");
+            while (resources.hasMoreElements()) {
+                java.net.URL url = resources.nextElement();
+                try (java.io.InputStream is = url.openStream();
+                     java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.InputStreamReader(is, java.nio.charset.StandardCharsets.UTF_8))) {
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        line = line.trim();
+                        if (line.isEmpty() || line.startsWith("#")) continue;
+                        String[] parts = line.split("=", 2);
+                        if (parts.length == 2) {
+                            String className = parts[0].trim();
+                            String path = parts[1].trim();
+                            try {
+                                Class<?> clazz = Class.forName(className, true, classLoader);
+                                addHandler(path, clazz);
+                            } catch (Throwable t) {
+                                // Ignore unresolvable page class
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (Exception ignored) {}
+    }
+
     public synchronized void start() {
+        loadDiscoveredPages();
         if (eeServer == null) {
             eeServer = JettraEE.builder()
                     .port(customPort)

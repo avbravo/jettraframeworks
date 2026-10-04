@@ -307,6 +307,9 @@ public class JettraEE {
                 openApiHandler.registerScannedClasses(secSchemesClasses);
             }
 
+            // Descubrir páginas JettraFlux compiladas desde META-INF/jettra/page.classes
+            loadDiscoveredPagesFromMetadata(fluxIntegration);
+
             // Registros manuales adicionales
             for (Class<?> r : manualResources) {
                 restDispatcher.registerResource(r);
@@ -323,6 +326,38 @@ public class JettraEE {
 
             WebResourceManager webResourceManager = new WebResourceManager(webappRoot);
             return new JettraEEServer(port, contextPath, restDispatcher, healthHandler, metricsHandler, openApiHandler, fluxIntegration, webResourceManager);
+        }
+
+        private void loadDiscoveredPagesFromMetadata(FluxIntegration fluxIntegration) {
+            try {
+                ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+                if (classLoader == null) classLoader = JettraEE.class.getClassLoader();
+                java.util.Enumeration<java.net.URL> resources = classLoader.getResources("META-INF/jettra/page.classes");
+                while (resources.hasMoreElements()) {
+                    java.net.URL url = resources.nextElement();
+                    try (java.io.InputStream is = url.openStream();
+                         java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.InputStreamReader(is, java.nio.charset.StandardCharsets.UTF_8))) {
+                        String line;
+                        while ((line = reader.readLine()) != null) {
+                            line = line.trim();
+                            if (line.isEmpty() || line.startsWith("#")) continue;
+                            String[] parts = line.split("=", 2);
+                            if (parts.length == 2) {
+                                String className = parts[0].trim();
+                                String path = parts[1].trim();
+                                try {
+                                    Class<?> clazz = Class.forName(className, true, classLoader);
+                                    fluxIntegration.registerPage(path, clazz);
+                                } catch (ClassNotFoundException e) {
+                                    IO.warn("No se pudo cargar pagina JettraFlux descubierta: " + className);
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                IO.warn("Error cargando META-INF/jettra/page.classes: " + e.getMessage());
+            }
         }
     }
 }

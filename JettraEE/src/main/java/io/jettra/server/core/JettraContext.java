@@ -29,7 +29,8 @@ public class JettraContext extends FluxContext {
     public static JettraContext getCurrent() {
         FluxContext cur = FluxContext.getCurrent();
         if (cur == null) {
-            return null;
+            cur = new FluxContext("flux-session");
+            FluxContext.setCurrent(cur);
         }
         if (cur instanceof JettraContext jc) {
             return jc;
